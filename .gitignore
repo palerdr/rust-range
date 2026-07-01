@@ -1,0 +1,9 @@
+/target/
+**/*.rs.bk
+.env
+.DS_Store
+/.agents/
+/.vs/
+/.git/
+/crates/*/.git/
+/crates/*/.git.bak/

@@ -1,0 +1,9 @@
+[package]
+name = "rf-cli"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+
+[dependencies]
+rf-core = { path = "../rf-core" }
+rf-engine = { path = "../rf-engine" }

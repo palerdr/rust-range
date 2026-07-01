@@ -1,0 +1,10 @@
+# Maximum width of each line before wrapping (Default: 100)
+max_width = 120
+
+# Use field initialization shorthand where possible
+use_field_init_shorthand = true
+
+# Reorder import (use) statements alphabetically
+reorder_imports = true
+
+
