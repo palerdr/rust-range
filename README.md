@@ -14,11 +14,14 @@ Fresh machine setup (Windows, macOS, Linux)
 
 Install the required tooling
 1. Install [Git](https://git-scm.com/downloads).
-2. Install [Rust and Cargo](https://rustup.rs/) (recommended, same idea as `uv` for Python):
+2. Install [Rust and Cargo](https://rustup.rs/) (toolchain manager, similar role to `uv` in Python):
    ```bash
    # Windows (PowerShell)
    winget install Rustlang.Rustup
-   # or use rustup installer from rust-lang.org
+
+   # Linux/macOS
+   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+   # or use the Rust installer from rust-lang.org
    ```
    Then verify:
    ```bash
@@ -39,6 +42,11 @@ Clone and build
 ```bash
 git clone <your-github-remote-url>
 cd <repo-dir>
+```
+
+Use whichever branch you want to work on:
+```bash
+git checkout -b feature/your-task
 ```
 
 Build everything in the workspace:
