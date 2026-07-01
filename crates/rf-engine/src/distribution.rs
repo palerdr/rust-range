@@ -5,23 +5,12 @@ const NORMALIZATION_EPS: f64 = 1e-12;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum DistributionError {
-    WrongLength {
-        expected: usize,
-        got: usize,
-    },
-    NegativeWeight {
-        index: usize,
-        value: f64,
-    },
-    NonFiniteWeight {
-        index: usize,
-        value: f64,
-    },
+    WrongLength { expected: usize, got: usize },
+    NegativeWeight { index: usize, value: f64 },
+    NonFiniteWeight { index: usize, value: f64 },
     AllZeroWeights,
     NonFiniteTotal,
-    NormalizationFailed {
-        sum: f64,
-    },
+    NormalizationFailed { sum: f64 },
     NoUnblockedCombos,
 }
 pub struct RangeDistribution {
@@ -40,16 +29,10 @@ impl RangeDistribution {
 
             for (idx, &w) in weights.iter().enumerate() {
                 if !w.is_finite() {
-                    return Err(DistributionError::NonFiniteWeight {
-                        index: idx,
-                        value: w,
-                    });
+                    return Err(DistributionError::NonFiniteWeight { index: idx, value: w });
                 }
                 if w < 0.0 {
-                    return Err(DistributionError::NegativeWeight {
-                        index: idx,
-                        value: w,
-                    });
+                    return Err(DistributionError::NegativeWeight { index: idx, value: w });
                 }
             }
 
@@ -134,17 +117,13 @@ impl RangeDistribution {
 
         Ok(updated)
     }
-    pub fn probability(&self, id:ComboId) -> f64 {
+    pub fn probability(&self, id: ComboId) -> f64 {
         let idx = id.index();
         self.probs[idx]
     }
 
-    pub fn iter(&self) -> impl ExactSizeIterator<Item = (ComboId, f64)>+ '_ {
-        self.probs
-        .iter()
-        .copied()
-        .enumerate()
-        .map(|(i,p)| {
+    pub fn iter(&self) -> impl ExactSizeIterator<Item = (ComboId, f64)> + '_ {
+        self.probs.iter().copied().enumerate().map(|(i, p)| {
             let id = ComboId::from_raw(i as u16).unwrap();
             (id, p)
         })
@@ -153,7 +132,6 @@ impl RangeDistribution {
     pub fn support_size(&self) -> usize {
         self.probs.iter().filter(|&&p| p > 0.0).count()
     }
-
 }
 
 //helper functions and shit
@@ -181,16 +159,10 @@ pub fn validate_weights(weights: &[f64]) -> Result<(), DistributionError> {
 
     for (idx, &w) in weights.iter().enumerate() {
         if !w.is_finite() {
-            return Err(DistributionError::NonFiniteWeight {
-                index: idx,
-                value: w,
-            });
+            return Err(DistributionError::NonFiniteWeight { index: idx, value: w });
         }
         if w < 0.0 {
-            return Err(DistributionError::NegativeWeight {
-                index: idx,
-                value: w,
-            });
+            return Err(DistributionError::NegativeWeight { index: idx, value: w });
         }
     }
 
@@ -207,7 +179,7 @@ pub fn validate_weights(weights: &[f64]) -> Result<(), DistributionError> {
     let is_close = (total - 1.0).abs() < NORMALIZATION_EPS;
 
     if !is_close {
-        return Err(DistributionError::NormalizationFailed { sum: total })
+        return Err(DistributionError::NormalizationFailed { sum: total });
     }
     Ok(())
 }
@@ -259,10 +231,7 @@ mod tests {
         weights[7] = -0.25;
         assert_eq!(
             validate_weights(&weights),
-            Err(DistributionError::NegativeWeight {
-                index: 7,
-                value: -0.25
-            })
+            Err(DistributionError::NegativeWeight { index: 7, value: -0.25 })
         );
     }
 
@@ -308,10 +277,7 @@ mod tests {
         };
         assert!(matches!(
             err,
-            DistributionError::NegativeWeight {
-                index: 9,
-                value: -0.25
-            }
+            DistributionError::NegativeWeight { index: 9, value: -0.25 }
         ));
     }
 
@@ -411,10 +377,7 @@ mod tests {
     #[test]
     fn condition_on_dead_zeroes_dead_combos() {
         let dist = RangeDistribution::from_weights(build_uniform_vec(1.0)).unwrap();
-        let dead = CardMask::from_cards([
-            Card::from_parts(12, 0).unwrap(),
-            Card::from_parts(11, 1).unwrap(),
-        ]);
+        let dead = CardMask::from_cards([Card::from_parts(12, 0).unwrap(), Card::from_parts(11, 1).unwrap()]);
         let conditioned = dist.condition_on_dead(dead).unwrap();
 
         let mut intersected = 0usize;

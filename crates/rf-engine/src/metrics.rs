@@ -1,16 +1,12 @@
+use crate::distribution::RangeDistribution;
 use rf_core::{
     features::{extract_features, ModelBucket},
     Board, ComboId, ComboWeights,
 };
-use crate::distribution::{RangeDistribution};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum MetricError {
-    SupportMismatch {
-        combo: ComboId,
-        q: f64,
-        p: f64,
-    },
+    SupportMismatch { combo: ComboId, q: f64, p: f64 },
 }
 
 fn bucket_index(bucket: ModelBucket) -> usize {
@@ -47,7 +43,6 @@ pub fn kl_div(q: &RangeDistribution, p: &RangeDistribution) -> Result<f64, Metri
 }
 
 pub fn kl_bits(q: &RangeDistribution, p: &RangeDistribution) -> Result<f64, MetricError> {
-
     let mut dkl = 0.0f64;
     for (id, q_prob) in q.iter() {
         let p_prob = p.probability(id);
@@ -84,17 +79,16 @@ pub fn top_n(p: &RangeDistribution, n: usize) -> Option<RangeDistribution> {
     let mut items: Vec<(ComboId, f64)> = p.iter().collect();
 
     items.sort_by(|a, b| {
-        b.1
-        .partial_cmp(&a.1)
-        .unwrap_or(std::cmp::Ordering::Equal)
-        .then_with(|| a.0.index().cmp(&b.0.index()))
+        b.1.partial_cmp(&a.1)
+            .unwrap_or(std::cmp::Ordering::Equal)
+            .then_with(|| a.0.index().cmp(&b.0.index()))
     });
 
     let mut out = ComboWeights::zeros();
     for (id, prob) in items.into_iter().take(n).filter(|(_, prob)| *prob > 0.0) {
         out.as_mut_slice()[id.index()] = prob;
     }
-    
+
     match RangeDistribution::from_weights(out) {
         Ok(dist) => Some(dist),
         Err(_) => None,
@@ -102,9 +96,8 @@ pub fn top_n(p: &RangeDistribution, n: usize) -> Option<RangeDistribution> {
 }
 
 pub fn bucket_masses(p: &RangeDistribution, board: &Board) -> Result<[f64; 6], rf_core::RfError> {
-
     let mut masses = [0.0f64; 6];
-    
+
     let mut items: Vec<(ComboId, f64)> = p.iter().collect();
     items.sort_by_key(|(id, _)| id.index());
 
@@ -112,7 +105,7 @@ pub fn bucket_masses(p: &RangeDistribution, board: &Board) -> Result<[f64; 6], r
         if prob == 0.0 {
             continue;
         }
-        
+
         let hole = id.hole_cards();
         if board.mask().intersects(hole.mask()) {
             continue;
@@ -120,7 +113,6 @@ pub fn bucket_masses(p: &RangeDistribution, board: &Board) -> Result<[f64; 6], r
         let features = extract_features(hole, board)?;
         let idx = bucket_index(features.bucket);
         masses[idx] += prob;
-
     }
     Ok(masses)
 }
@@ -246,5 +238,4 @@ mod tests {
         let second = bucket_masses(&dist, &board).unwrap();
         assert_eq!(first, second);
     }
-
 }

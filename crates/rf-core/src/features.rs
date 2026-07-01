@@ -60,9 +60,7 @@ pub fn extract_features(hole: HoleCards, board: &Board) -> Result<HandFeatures, 
             HandCategory::HighCard => ModelBucket::Air,
             HandCategory::OnePair => ModelBucket::OnePair,
             HandCategory::TwoPair | HandCategory::ThreeOfAKind => ModelBucket::TwoPairOrTrips,
-            HandCategory::Straight | HandCategory::Flush | HandCategory::StraightFlush => {
-                ModelBucket::StraightOrFlush
-            }
+            HandCategory::Straight | HandCategory::Flush | HandCategory::StraightFlush => ModelBucket::StraightOrFlush,
             HandCategory::FullHouse | HandCategory::FourOfAKind => ModelBucket::FullHousePlus,
         }
     };
