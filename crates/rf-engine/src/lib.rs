@@ -16,3 +16,6 @@ mod tests {
 pub mod distribution;
 pub mod metrics;
 pub mod action;
+mod action_json;
+pub mod bayes;
+pub mod equity;
