@@ -31,7 +31,7 @@ pub fn extract_features(hole: HoleCards, board: &Board) -> Result<HandFeatures, 
         for card in mask.iter() {
             suit_counts[card.suit() as usize] += 1;
         }
-        suit_counts.iter().any(|&c| c == 4)
+        suit_counts.contains(&4)
     };
 
     let straight_draw_flag = |mask: crate::CardMask| -> bool {

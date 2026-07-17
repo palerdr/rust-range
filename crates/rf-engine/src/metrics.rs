@@ -1,3 +1,5 @@
+//! Information and aggregation metrics over range distributions.
+
 use crate::distribution::RangeDistribution;
 use rf_core::{
     features::{extract_features, ModelBucket},
@@ -89,10 +91,7 @@ pub fn top_n(p: &RangeDistribution, n: usize) -> Option<RangeDistribution> {
         out.as_mut_slice()[id.index()] = prob;
     }
 
-    match RangeDistribution::from_weights(out) {
-        Ok(dist) => Some(dist),
-        Err(_) => None,
-    }
+    RangeDistribution::from_weights(out).ok()
 }
 
 pub fn bucket_masses(p: &RangeDistribution, board: &Board) -> Result<[f64; 6], rf_core::RfError> {

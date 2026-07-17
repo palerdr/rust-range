@@ -1,6 +1,8 @@
-use rf_core::{all_combos, CardMask, ComboId, ComboWeights};
+//! Normalized probability tables over the fixed 1,326 two-card combinations.
 
-const NUM_COMBOS: usize = 1326;
+use rf_core::{all_combos, CardMask, ComboId, ComboWeights, NUM_HOLE_COMBOS};
+
+pub const NUM_COMBOS: usize = NUM_HOLE_COMBOS;
 const NORMALIZATION_EPS: f64 = 1e-12;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -13,6 +15,24 @@ pub enum DistributionError {
     NormalizationFailed { sum: f64 },
     NoUnblockedCombos,
 }
+impl std::fmt::Display for DistributionError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::WrongLength { expected, got } => write!(f, "expected {expected} weights, got {got}"),
+            Self::NegativeWeight { index, value } => write!(f, "weight {index} is negative: {value}"),
+            Self::NonFiniteWeight { index, value } => write!(f, "weight {index} is not finite: {value}"),
+            Self::AllZeroWeights => write!(f, "all weights are zero"),
+            Self::NonFiniteTotal => write!(f, "weight total is not finite"),
+            Self::NormalizationFailed { sum } => write!(f, "normalization failed; sum is {sum}"),
+            Self::NoUnblockedCombos => write!(f, "no unblocked combinations remain"),
+        }
+    }
+}
+
+impl std::error::Error for DistributionError {}
+
+/// A finite, nonnegative probability distribution indexed by [`ComboId`].
+#[derive(Clone, Debug, PartialEq)]
 pub struct RangeDistribution {
     probs: Vec<f64>,
 }
@@ -134,7 +154,7 @@ impl RangeDistribution {
     }
 }
 
-//helper functions and shit
+/// Sum values with compensation to reduce floating-point accumulation error.
 pub fn stable_sum(xs: &[f64]) -> f64 {
     let mut sum = 0.0f64;
     let mut c = 0.0f64;

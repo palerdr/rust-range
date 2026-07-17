@@ -221,6 +221,12 @@ impl HoleCards {
     }
 }
 
+impl fmt::Display for HoleCards {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}{}", self.cards[0], self.cards[1])
+    }
+}
+
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum Street {
     Preflop,
@@ -310,10 +316,23 @@ impl Board {
         self.len
     }
 
+    pub const fn is_empty(self) -> bool {
+        self.len == 0
+    }
+
     pub fn is_prefix_of(&self, other: &Board) -> bool {
         let a = self.len as usize;
         let b = other.len as usize;
         a <= b && self.cards[..a] == other.cards[..a]
+    }
+}
+
+impl fmt::Display for Board {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        for card in self.cards() {
+            write!(f, "{card}")?;
+        }
+        Ok(())
     }
 }
 

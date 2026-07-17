@@ -1,0 +1,7 @@
+{
+  "hero": "AsKh",
+  "board": "QsJh2c7d",
+  "prior": {"type": "notation", "value": "random"},
+  "observations": [],
+  "equity": {"method": "exact", "samples": 100000, "seed": 7}
+}

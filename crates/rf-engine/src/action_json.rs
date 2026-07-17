@@ -1,7 +1,6 @@
 use crate::action::{
-    buckets, legal_actions, validate_probability, validate_sum, Action, ActionDistribution,
-    ActionLikelihoodModel, ActionModelMetadata, BucketedActionModel, DecisionKind, ModelError,
-    ROW_COUNT,
+    buckets, legal_actions, validate_probability, validate_sum, Action, ActionDistribution, ActionLikelihoodModel,
+    ActionModelMetadata, BucketedActionModel, DecisionKind, ModelError, ROW_COUNT,
 };
 use rf_core::{features::ModelBucket, Street};
 use serde::{Deserialize, Serialize};
@@ -23,8 +22,7 @@ struct ActionModelRow {
 
 impl BucketedActionModel {
     pub fn from_json_str(text: &str) -> Result<Self, ModelError> {
-        let file: ActionModelFile =
-            serde_json::from_str(text).map_err(|err| ModelError::Json(err.to_string()))?;
+        let file: ActionModelFile = serde_json::from_str(text).map_err(|err| ModelError::Json(err.to_string()))?;
         let mut rows = Vec::with_capacity(file.rows.len());
 
         for row in file.rows {

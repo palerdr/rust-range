@@ -93,7 +93,7 @@ impl ComboWeights {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum RangeSpec {
     Random,
     Notation(String),

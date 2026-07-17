@@ -1,3 +1,5 @@
+//! Action observations and validated bucketed likelihood models.
+
 use rf_core::{features::ModelBucket, Board, Street};
 use serde::{Deserialize, Serialize};
 
@@ -38,6 +40,7 @@ pub enum Action {
     Raise,
 }
 
+#[derive(Clone, Debug, PartialEq)]
 pub struct ActionObservation {
     pub board: Board,
     pub decision: DecisionKind,
@@ -55,6 +58,10 @@ pub trait ActionLikelihoodModel: Send + Sync {
     ) -> Result<ActionDistribution, ModelError>;
 
     fn model_id(&self) -> &str;
+
+    fn metadata(&self) -> Option<&ActionModelMetadata> {
+        None
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -110,10 +117,7 @@ impl BucketedActionModel {
             };
         }
 
-        Ok(Self {
-            metadata,
-            rows: out,
-        })
+        Ok(Self { metadata, rows: out })
     }
 
     pub fn metadata(&self) -> &ActionModelMetadata {
@@ -134,6 +138,10 @@ impl ActionLikelihoodModel for BucketedActionModel {
 
     fn model_id(&self) -> &str {
         &self.metadata.id
+    }
+
+    fn metadata(&self) -> Option<&ActionModelMetadata> {
+        Some(&self.metadata)
     }
 }
 
@@ -171,11 +179,7 @@ pub fn require_postflop(street: Street) -> Result<(), ModelError> {
     }
 }
 
-pub fn row_index(
-    street: Street,
-    decision: DecisionKind,
-    bucket: ModelBucket,
-) -> Result<usize, ModelError> {
+pub fn row_index(street: Street, decision: DecisionKind, bucket: ModelBucket) -> Result<usize, ModelError> {
     let si = match street {
         Street::Flop => 0,
         Street::Turn => 1,
@@ -228,11 +232,7 @@ fn toy_distribution(decision: DecisionKind, bucket: ModelBucket) -> ActionDistri
     };
 
     let actions = legal_actions(decision);
-    [
-        (actions[0], probs[0]),
-        (actions[1], probs[1]),
-        (actions[2], probs[2]),
-    ]
+    [(actions[0], probs[0]), (actions[1], probs[1]), (actions[2], probs[2])]
 }
 
 fn validate_metadata(metadata: &ActionModelMetadata) -> Result<(), ModelError> {
@@ -333,11 +333,7 @@ mod tests {
                 (Action::SmallBet, 0.30),
                 (Action::LargeBet, 0.10),
             ],
-            DecisionKind::FacingBet => [
-                (Action::Fold, 0.25),
-                (Action::Call, 0.60),
-                (Action::Raise, 0.15),
-            ],
+            DecisionKind::FacingBet => [(Action::Fold, 0.25), (Action::Call, 0.60), (Action::Raise, 0.15)],
         }
     }
 
@@ -364,11 +360,7 @@ mod tests {
 
     #[test]
     fn rejects_invalid_action_for_context() {
-        let bad = [
-            (Action::Check, 0.50),
-            (Action::Call, 0.40),
-            (Action::LargeBet, 0.10),
-        ];
+        let bad = [(Action::Check, 0.50), (Action::Call, 0.40), (Action::LargeBet, 0.10)];
 
         assert!(matches!(
             validate_row(bad, DecisionKind::Unopened),

@@ -1,0 +1,7 @@
+{
+  "hero": "AsKh",
+  "board": "",
+  "prior": {"type": "notation", "value": "random"},
+  "observations": [],
+  "equity": {"method": "monte_carlo", "samples": 20000, "seed": 20260715}
+}
