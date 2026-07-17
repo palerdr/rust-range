@@ -1,8 +1,6 @@
-# RangeForge
+# rust-range
 
-RangeForge is a safe Rust engine for maintaining a probability distribution over an opponent's possible two-card Texas Hold'em hands, conditioning it on blockers, updating it from observed actions, and reporting equity and information metrics.
-
-The project is intentionally narrow: heads-up Hold'em, one opponent, a fixed 1,326-combo hidden-hand universe, and an explicit illustrative action model. It is an inference and learning project, not a poker bot or wagering tool.
+rust-range is a Rust command-line tool and library for analyzing a heads-up Texas Hold'em opponent range. It starts with the 1,326 possible two-card hands, removes hands blocked by known cards, updates the remaining probabilities from observed postflop actions, and reports showdown equity and information metrics.
 
 ## What works
 
@@ -18,37 +16,7 @@ The project is intentionally narrow: heads-up Hold'em, one opponent, a fixed 1,3
 - Entropy, effective hand count, total variation, KL divergence, top combinations, bucket masses, action information, and next-card information.
 - A thin `rangeforge` CLI with human and JSON reports.
 
-## Architecture
-
-```text
-scenario JSON + model JSON
-            |
-            v
-rf-cli  ->  rf-engine  ->  rf-core
-report      beliefs,     cards, boards,
-            equity,      combos, evaluator
-            information
-```
-
-`rf-core` owns objective poker state and the fixed combo universe. `rf-engine` owns probability, inference, equity, and reports. `rf-cli` parses files and presents one engine report; it does not contain poker math.
-
-## Mathematical contract
-
-For hidden hand `H`, known cards `B`, and observations `E1..En`:
-
-```text
-P(H=h | B, E1..En) ∝ P(H=h | B) × ∏ P(Ei | H=h, contexti)
-```
-
-The implementation applies action likelihoods in log space and normalizes with log-sum-exp. A blocked combo always has zero posterior mass. Equity is showdown share only:
-
-```text
-equity = P(win) + 0.5 × P(tie)
-```
-
-The bundled model is synthetic and intentionally marked `"calibration": "illustrative"`. Its results demonstrate the pipeline and math; they are not claims about real-player behavior.
-
-## Quick start
+## Run the demos
 
 Install stable Rust with Cargo, then from the repository root:
 
@@ -57,33 +25,46 @@ cargo test --workspace
 cargo run --package rf-cli --bin rangeforge -- --help
 ```
 
-Validate the checked-in model and a scenario:
+All examples use the bundled illustrative action model:
 
 ```bash
 cargo run --package rf-cli --bin rangeforge -- validate-model examples/toy_postflop_v1.json
-cargo run --package rf-cli --bin rangeforge -- validate examples/flop_large_bet.json --model examples/toy_postflop_v1.json
 ```
 
-Run the main demo as human-readable text:
+Run a demo as a human-readable report:
 
 ```bash
-cargo run --release --package rf-cli --bin rangeforge -- analyze examples/flop_large_bet.json --model examples/toy_postflop_v1.json
+cargo run --release --package rf-cli --bin rangeforge -- analyze examples/sequential_action_update.json --model examples/toy_postflop_v1.json
 ```
 
-Run the same analysis as JSON:
+Use `--format json` for machine-readable output:
 
 ```bash
-cargo run --release --package rf-cli --bin rangeforge -- analyze examples/flop_large_bet.json --model examples/toy_postflop_v1.json --format json --top 10
+cargo run --release --package rf-cli --bin rangeforge -- analyze examples/sequential_action_update.json --model examples/toy_postflop_v1.json --format json --top 10
 ```
 
-Other checked-in scenarios:
+### What the demos show
+
+Sequential action inference applies a flop large bet and a turn raise to the same opponent range. The report shows the probability of each observation, how entropy and effective hand count change after every update, the final posterior's most likely hands, and equity against that posterior.
 
 ```bash
-cargo run --release --package rf-cli --bin rangeforge -- analyze examples/turn_exact.json --model examples/toy_postflop_v1.json
-cargo run --release --package rf-cli --bin rangeforge -- analyze examples/preflop_monte_carlo.json --model examples/toy_postflop_v1.json
+cargo run --release --package rf-cli --bin rangeforge -- analyze examples/sequential_action_update.json --model examples/toy_postflop_v1.json
 ```
 
-Exact equity is deliberately rejected preflop; use `"method": "monte_carlo"` there.
+The blocker comparison holds the board and observed action fixed while changing Hero from `AsKh` to `AcKh`. This shows how holding the ace of spades removes opponent spade combinations and changes the inferred range and equity.
+
+```bash
+cargo run --release --package rf-cli --bin rangeforge -- analyze examples/blocker_with_ace_of_spades.json --model examples/toy_postflop_v1.json
+cargo run --release --package rf-cli --bin rangeforge -- analyze examples/blocker_without_ace_of_spades.json --model examples/toy_postflop_v1.json
+```
+
+The draw-heavy board example (`JsTs7h`) first incorporates a large bet, then reports exact equity and expected next-card information across every legal turn card. It shows how much a future card is expected to reveal about the opponent's range.
+
+```bash
+cargo run --release --package rf-cli --bin rangeforge -- analyze examples/draw_heavy_next_card.json --model examples/toy_postflop_v1.json
+```
+
+The original simple examples remain available in `examples/`, including an exact turn calculation and seeded preflop Monte Carlo estimate. Exact equity is unavailable preflop; use `"method": "monte_carlo"` there.
 
 ## Scenario shape
 

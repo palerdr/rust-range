@@ -1,0 +1,10 @@
+{
+  "hero": "AsKh",
+  "board": "QsJh2c7d",
+  "prior": {"type": "notation", "value": "random"},
+  "observations": [
+    {"board": "QsJh2c", "decision": "unopened", "action": "bet_large"},
+    {"board": "QsJh2c7d", "decision": "facing_bet", "action": "raise"}
+  ],
+  "equity": {"method": "exact", "samples": 100000, "seed": 7}
+}

@@ -1,0 +1,9 @@
+{
+  "hero": "AhKd",
+  "board": "JsTs7h",
+  "prior": {"type": "notation", "value": "random"},
+  "observations": [
+    {"board": "JsTs7h", "decision": "unopened", "action": "bet_large"}
+  ],
+  "equity": {"method": "exact", "samples": 100000, "seed": 7}
+}
